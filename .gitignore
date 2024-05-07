@@ -1,0 +1,6 @@
+db.sqlite
+__pycache__
+log.txt
+receipts
+notebooks
+.ipynb_checkpoints

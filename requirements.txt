@@ -1,0 +1,5 @@
+requests
+pydantic
+openai
+tqdm
+BeautifulSoup4
