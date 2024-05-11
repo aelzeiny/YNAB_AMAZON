@@ -1,6 +1,6 @@
 import os
 import requests
-from models import NewTransaction
+from models import NewTransaction, Category
 
 
 BUDGET_ID = 'last-used'
@@ -29,3 +29,18 @@ def post_transaction(transaction: NewTransaction) -> list[str]:
     )
     resp.raise_for_status()
     return resp.json()['data']['transaction_ids']
+
+
+def get_categories() -> list[Category]:
+    resp = requests.get(
+        f'https://api.ynab.com/v1/budgets/{BUDGET_ID}/categories',
+        headers=DEFAULT_HEADERS,
+    )
+    resp.raise_for_status()
+    categories_data = resp.json()
+    return [
+        Category(cg['name'], c['name'], c['id'])
+        for cg in categories_data['data']['category_groups']
+        for c in cg['categories']
+        if cg['name'].startswith('[Auto]')
+    ]

@@ -27,7 +27,7 @@ def _receipt_html_to_txt(html: str):
     return re.sub("\n\s+", "\n", soup.text)
 
 
-def main(account_id: str, input_path: str, db_path: str):
+def main(account_id: str, input_path: str, db_path: str, categorize: bool):
     with closing(db.RunStore(db_path)) as store:
         unprocessed_orders = [
             order_id
@@ -35,14 +35,22 @@ def main(account_id: str, input_path: str, db_path: str):
             if not store.has_amazon_order(order_id)
         ]
 
+        categories = []
+        if categorize:
+            categories = ynab.get_categories()
+
         for order_id in tqdm(unprocessed_orders):
             try:
                 logging.info(f"Processing order: {order_id}")
                 with open(os.path.join(input_path, order_id), "r") as f:
                     receipt_text = _receipt_html_to_txt(f.read())
 
-                receipt_json = gpt.chatgpt(receipt_text)
+                other = "other"
+                receipt_json = gpt.chatgpt(
+                    receipt_text, [c.get_name() for c in categories] + [other]
+                )
                 receipt = Receipt.model_validate(receipt_json)
+                receipt.set_ynab_category(categories)
                 if receipt.grand_total != 0:
                     logging.info(f"Valid Receipt, uploading to YNAB")
                     transaction = NewTransaction.from_receipt(
@@ -51,7 +59,7 @@ def main(account_id: str, input_path: str, db_path: str):
                     ynab_id, *_ = ynab.post_transaction(transaction)
                 else:
                     logging.info(f"Empty receipt. Skipping import")
-                    ynab_id = ''
+                    ynab_id = ""
                 store.add_amazon_order(
                     ynab_id,
                     order_id,
@@ -84,6 +92,14 @@ if __name__ == "__main__":
         "--db_path",
         type=str,
         help="Path to SQLite DB that stores data in-between runs",
+    )
+
+    parser.add_argument(
+        "-c",
+        "--categorize",
+        type=bool,
+        help="Attempt to categorize the transaction?",
+        default=False,
     )
 
     main(**dict(vars(parser.parse_args())))

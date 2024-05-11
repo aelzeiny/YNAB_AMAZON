@@ -10,3 +10,6 @@ python main.py -a account_uuid -i ./receipts -db .db.sqlite
 * The wonderful minds behind the **AWS CLOUD** cannot provide an OAuth API 🙃
 * Amazon is mostly server-side generated, and AFAIK there's no direct API call that can grab these details.
 * Amazon killed the "download orders as CSV" feature.
+
+### Auto-categorization
+The `-c true` flag will attempt to auto-categorize transactions for you based on category groups that start with "[auto]". By default this behavior is turned off.
