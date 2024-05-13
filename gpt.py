@@ -11,7 +11,7 @@ usage_total_tokens = 0
 
 prompt = """\
 You are a helpful assistant designed to read Amazon receipts and summarize the output in JSON.
-The output must fit the following schema: {"grand_total": "decimal", "subtotal": "decimal", "total_before_tax": "decimal", "date": "YYYY-MM-DD", "items": [{"short_name": "string", "title": "string", "price": "decimal", "category": "ENUM<%s>}]
+The output must fit the following schema: {"grand_total": "decimal", "subtotal": "decimal", "total_before_tax": "decimal", "date": "YYYY-MM-DD", "items": [{"short_name": "VARCHAR(64)", "title": "string", "price": "decimal", "category": "ENUM<%s>}]
 """
 
 

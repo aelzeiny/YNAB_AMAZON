@@ -93,7 +93,7 @@ class SaveSubTransaction(BaseModel):
         return cls(
             amount=-abs(int(round(item.adjusted_cost(receipt) * 1000))),
             memo=item.short_name,
-            category_id=item.ynab_category.id if item.ynab_category else None,
+            category_id=item.ynab_category.category_id if item.ynab_category else None,
         )
 
 
@@ -102,8 +102,9 @@ class NewTransaction(BaseModel):
     date: dt.date
     amount: int
     payee_name: str
-    memo: Optional[str]  # should be the order_id
+    memo: Optional[str]
     subtransactions: list[SaveSubTransaction]
+    category_id: Optional[str]
 
     @field_serializer("date")
     def serialize_dt(self, date: dt.date, *_, **__):
@@ -113,14 +114,26 @@ class NewTransaction(BaseModel):
     def from_receipt(
         cls, order_id: str, account_id: str, payee_name: str, receipt: Receipt
     ) -> "NewTransaction":
-        subtransactions = [
-            SaveSubTransaction.from_item(receipt, item) for item in receipt.items
-        ]
-        return cls(
-            account_id=account_id,
-            date=receipt.date,
-            amount=-abs(int(round(receipt.grand_total * 1000))),
-            payee_name=payee_name,
-            subtransactions=subtransactions,
-            memo=order_id,
-        )
+        if receipt.items == 1:
+            # Orders of exact 1 item should not be split into multiple transactions.
+            item = receipt.items[0]
+            return cls(
+                account_id=account_id,
+                date=receipt.date,
+                amount=-abs(int(round(receipt.grand_total * 1000))),
+                payee_name=payee_name,
+                memo=f'{item.short_name} ({order_id})',
+                category_id=item.ynab_category.category_id if item.ynab_category else None,
+            )
+        else:
+            subtransactions = [
+                SaveSubTransaction.from_item(receipt, item) for item in receipt.items
+            ]
+            return cls(
+                account_id=account_id,
+                date=receipt.date,
+                amount=-abs(int(round(receipt.grand_total * 1000))),
+                payee_name=payee_name,
+                subtransactions=subtransactions,
+                memo=order_id,
+            )
