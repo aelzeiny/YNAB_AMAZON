@@ -103,8 +103,8 @@ class NewTransaction(BaseModel):
     amount: int
     payee_name: str
     memo: Optional[str]
-    subtransactions: list[SaveSubTransaction]
-    category_id: Optional[str]
+    subtransactions: Optional[list[SaveSubTransaction]] = None
+    category_id: Optional[str] = None
 
     @field_serializer("date")
     def serialize_dt(self, date: dt.date, *_, **__):
@@ -114,7 +114,7 @@ class NewTransaction(BaseModel):
     def from_receipt(
         cls, order_id: str, account_id: str, payee_name: str, receipt: Receipt
     ) -> "NewTransaction":
-        if receipt.items == 1:
+        if len(receipt.items) == 1:
             # Orders of exact 1 item should not be split into multiple transactions.
             item = receipt.items[0]
             return cls(

@@ -1,6 +1,10 @@
 # YNAB_AMAZON - Upload your Amazon Receipts.
 This repo takes your HTML Amazon receipts, parses them with ChatGPT, and uploads them to YNAB as split transactions. It's intended to be used in combination with the [Amazon Orders WebScrapper](https://github.com/aelzeiny/Amazon-Orders-WebScraper), which will do the actual receipt scrapping.
 
+### Example:
+**Note**: Transactions with multiple items are automatically split into multiple sub-transactions, as shown below.
+![YNAB Amazon imported screenshot](./docs/YNAB_AMAZON.png)
+
 ### Example Usage:
 ```
 python main.py -a account_uuid -i ./receipts -db .db.sqlite
